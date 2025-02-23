@@ -15,6 +15,7 @@
 \usepackage{tikz}
 \usetikzlibrary{shapes}
 \usepackage{pdfpages}
+\usepackage{xcolor}
 \usepackage{wrapfig}
 \usepackage{enumitem}
 \setlist[description]{leftmargin=0pt}
@@ -35,10 +36,10 @@
  \newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
     \def\independenT#1#2{\mathrel{\setbox0\hbox{$#1#2$}%
     \copy0\kern-\wd0\mkern4mu\box0}} 
-            
+    
 \newcommand{\noin}{\noindent}    
 \newcommand{\logit}{\textrm{logit}} 
-\newcommand{\var}{\textrm{Var}}
+% \newcommand{\var}{\textrm{Var}}
 \newcommand{\cov}{\textrm{Cov}} 
 \newcommand{\corr}{\textrm{Corr}} 
 \newcommand{\N}{\mathcal{N}}
@@ -54,6 +55,8 @@
 \newcommand{\Hypergeometric}{\textrm{HGeom}}
 \newcommand{\HGeom}{\textrm{HGeom}}
 \newcommand{\Mult}{\textrm{Mult}}
+\newcommand{\mean}{\mathbb{E}}
+\newcommand{\var}{\mathbb{V}}
 
 \geometry{top=.4in,left=.2in,right=.2in,bottom=.4in}
 
@@ -136,7 +139,7 @@ Compiled by Tu Nguyen Ngoc. Material based on Kelvin Murphy's book (\texttt{\hre
 \section{Introduction}\smallskip \hrule height 2pt \smallskip
 
  \subsection{Supervised Learning} 
-    The task $T$ is to learn a mapping $f$ from $x \in X$ to $y \in Y$. The $x$ are also called the $\bold{features}$. The output $y$ is called the $\bold{label}$. The experience $E$ is given in the form of a set of $N$ input-output pair $\mathcal{D} = \{(x_n,y_n)\}, n = 1 \xrightarrow{} N$ is called $\textbf{training set}$. ($N$ is called the $\textbf{sample size}$. The performance $P$ depends on the type of output we want to predict.
+    The task $T$ is to learn a mapping $f$ from $x \in X$ to $y \in Y$. The $x$ are also called the $\mathbf{features}$. The output $y$ is called the $\mathbf{label}$. The experience $E$ is given in the form of a set of $N$ input-output pair $\mathcal{D} = \{(x_n,y_n)\}, n = 1 \xrightarrow{} N$ is called $\textbf{training set}$. ($N$ is called the $\textbf{sample size}$. The performance $P$ depends on the type of output we want to predict.
 \subsection{Classification}
     In classification problem, the output space is a set of C labels called $\textbf{classes}$, $Y = \{1,2,...,C\}$. The problem predicting the class label given a input is called $\textbf{pattern recognition}$.
     The goal of supervised learning in classification problem is want to predict the label. A common way to measure the perform on this task is called $\textbf{misclassification rate}$.
@@ -235,7 +238,234 @@ Compiled by Tu Nguyen Ngoc. Material based on Kelvin Murphy's book (\texttt{\hre
 \newpage
     
 \subsection{Preprocessing discrete input data}
+    \textbf{One-hot encoding}
 
+    When we have categorical features, we need to scale it into numerical values, so that the compute makes sense. The standard way to preprocess such categorical variables is to use a $\textbf{one-hot encoding}$. one-hot(x) = $[\mathbb{I}(x=1),...,\mathbb{I}(x=K)]$. If a variable x has $K$ values (3 colors red,green,blue), the corresponding one-hot vectors will be one-hot(red)=[1,0,0], one-hot(green)=[0,1,0], one-hot(blue)=[0,0,1].
+
+    \textbf{Feature crosses}
+
+    Converting the original datasets into a $\textbf{wide format}$, with more many columns. 
+    Suppose we want to predict the fuel efficiency of a vehicle given two categorical input variables: 
+    \begin{itemize}
+        \item \( x_1 \): The type of car (SUV, Truck, Family car).
+        \item \( x_2 \): The country of origin (USA, Japan).
+    \end{itemize}
+    Using one-hot encoding, we represent these variables as separate binary indicators:
+    \[
+    \phi(x) = [1, I(x_1 = S), I(x_1 = T), I(x_1 = F), I(x_2 = U), I(x_2 = J)]
+    \]
+    However, this encoding does not capture interactions between the features. For example, we expect trucks to be less fuel-efficient overall, but perhaps trucks from the USA are even less efficient than trucks from Japan. This cannot be captured using a simple linear model.
+    We define a new composite feature representing all possible pairs:
+    \[
+    \text{(Car type, Country)} = \{(S, U), (T, U), (F, U), (S, J), (T, J), (F, J)\}
+    \]
+    The new model becomes:
+    \[
+    f(x; w) = w^T \phi(x)
+    \]
+    Express the equation we have:
+    \begin{equation*}
+        \begin{split}
+            f(x; w) = & \; w_0 + w_1 I(x_1 = S) + w_2 I(x_1 = T) + w_3 I(x_1 = F) \\
+            &+ w_4 I(x_2 = U) + w_5 I(x_2 = J) + w_6 I(x_1 = S, x_2 = U) \\
+            &+ w_7 I(x_1 = T, x_2 = U) + w_8 I(x_1 = F, x_2 = U) \\
+            &+ w_9 I(x_1 = S, x_2 = J) + w_{10} I(x_1 = T, x_2 = J)\\ 
+            &+ w_{11} I(x_1 = F, x_2 = J)
+        \end{split}
+    \end{equation*}
+
+\section{Probability Unvariate Models}\smallskip \hrule height 2pt \smallskip
+
+\subsection{Introduction}
+    Calling $\textbf{sample space}$ $\mathcal{X}$ are all possible experiences, and $\textbf{event}$ will be a subset of the $\textbf{sample space}$.
+    
+    \textbf{Union}
+    \[ Pr(A \land B)=Pr(A,B) \]
+    If independent events
+    \[ Pr(A \land B)=Pr(A)Pr(B) \] 
+
+    We say a set of variables $X_1, . . . , X_n$ is (mutually) independent if the joint can be written as a product of marginals for all subsets $\{X_1,...,X_m\} \subseteq \{X_1,...,X_n\}$
+    \begin{equation*}
+        p(X_1,X_2,...,X_n)=\prod_{i=1}^{m}p(X_i)
+    \end{equation*}
+    
+    \textbf{Disjoint}
+    \[Pr(A \vee B)=Pr(A)+Pr(B)-Pr(A\land B)\]
+    \textbf{Conditional probability}
+    \[Pr(B|A)\triangleq \frac{Pr(A,B)}{Pr(A)}\]
+    If events A and B are conditionally independent given event C
+    \[Pr(A,B|C)=Pr(A|C)Pr(B|C)\]
+    Be careful, we say $X_1,X_2,X_3$ are mutually independent if the following conditions hold:
+    \begin{equation*}
+        \begin{split}    
+        p(X_1,X_2,X_3)=p(X_1)p(X_2)p(X_3)\\
+        ,p(X_1,X_2)=p(X_1)p(X_2) \\
+        ,p(X_1,X_3)=p(X_1)p(X_3) \\
+        ,p(X_2,X_3)=p(X_2)p(X_3) \\
+        \end{split}
+    \end{equation*}
+    
+\subsection{Random variables}
+    \begin{minipage}{\linewidth}
+            \centering
+            \includegraphics[width=3in]{figures/rv.PNG}
+    \end{minipage}
+    Given an experiment with sample space $\mathbb{S}$, a random variable(r.v.) is a function mapping from the sample $\mathbb{S}$ to the real value $\mathbb{R}$.
+    
+    \textbf{Discrete random variables}
+    
+    If sample space $\mathbb{S}$ have finite or countable, it is called a Discrete r.v. Denote probability of events in $\mathbb{S}$ and have value x by $Pr(X=x)$. This called probability mass function or \textbf{pmf} as a function which compute the probability of events which have the value x.
+    \begin{equation*}
+        p(x)\triangleq Pr(X=x)
+    \end{equation*}
+    The pmf satisfied $0\leq p(x) \leq 1$ and $\sum_{x\in \mathcal{X}}^{}p(x)=1$
+    
+\textbf{Continuous random variables}
+
+    If $X \in \mathbb{R}$, it is called the continuous r.v. The value or no longer create a finite set of distinct possible values it can take on.
+
+\textbf{Cumulative distribution function (cdf)}
+
+    \begin{equation*}
+        P(x) \triangleq Pr(X\leq x)
+    \end{equation*}
+
+    We can compute the probability of any interval
+
+    \begin{equation*}
+        P(a\leq x \leq b) = P(b)-P(a-1)
+    \end{equation*}
+
+    In discrete r.v, the cdf will compute
+    \begin{equation*}
+        P(x)=\sum_{x\in \mathcal{X}}^{}p(x)
+    \end{equation*}
+    In continuous r.v, the cdf will compute
+    \begin{equation*}
+        P(x)=\int_{x\in \mathcal{X}}^{}p(x)
+    \end{equation*}
+
+\textbf{Probability density function (pdf)}
+
+    Define the pdf as a derivative of the cdf
+    \begin{equation*}
+        p(x) \triangleq \frac{d}{dx}P(x)
+    \end{equation*}
+    As the size of interval get smaller, we can write
+    \begin{equation*}
+        Pr(x<X<x+dx) \approx p(x)dx
+    \end{equation*}
+    
+\textbf{Quantiles}
+
+    If the cdf P is monotonically increase, it has an inverse, called the $\textbf{inverse cdf}$. If P is the cdf of $X$, then $P^{-1}(q)$ is the value $x_q$ that $Pr(X\leq x_q)=q$; this call q'th quantiles of P.    
+
+\textbf{Sets of related random variables}
+
+    Suppose we have two r.v $X$ and $Y$. We can define joint of distribution $p(x,y)=Pr(X=x,Y=y)$ for all possible value of x and y. We can respresent the all possible value by a 2d table. For example:
+    \[
+    \begin{array}{c|cc}
+        p(X,Y) & Y = 0 & Y = 1 \\
+        \hline
+        X = 0 & 0.2 & 0.3 \\
+        X = 1 & 0.3 & 0.2
+    \end{array}
+    \]
+    $Pr(X=0,Y=1)=0.3$, $\sum_{x \in \mathcal{X},y \in \mathcal{Y}}p(x,y)=1$
+
+\textbf{Moments of a distribution}
+
+    $\textbf{Mean}$ is the average of the distribution, other name is called $\textbf{expected value}$, denoted as $\mu$. For continuous r.v, the mean is defined as follow:
+    \begin{equation*}
+        \mathbb{E}[X]=\int_{x\in \mathcal{X}}xp(x)dx
+    \end{equation*}
+    If the integral is not finite, the mean is not defined.
+    For discrete r.v, the mean is defined as follow:
+    \begin{equation*}
+        \mathbb{E}[X]=\sum_{x\in \mathcal{X}}xp(x)dx
+    \end{equation*}
+    Since the mean is linear, we have the \textbf{linearity of expectation}:
+    \begin{equation*}
+        \mathbb{E}[aX+b]=a\mathbb{E}[X]+b
+    \end{equation*}
+    For n set random variables, we can show the sum of expectation as follow:
+    \begin{equation*}
+        \mathbb{E}[\sum X_i]=\sum \mathbb{E}[X_i]
+    \end{equation*}
+    If they are independent, the expectation of product is defined:
+    \begin{equation*}
+        \mathbb{E}[\prod X_i]=\prod \mathbb{E}[X_i]
+    \end{equation*}
+    When we have two or more dependent r.v, we can compute the moment of one given the others. 
+    \begin{equation*}
+        % \mathbb{E}[X]=\mathbb{E}_Y[\mathbb{E]}]
+        \mean[X]=\mean_Y[\mean[X|Y]]
+    \end{equation*}
+    There is a similar formula for the variance.
+    \begin{equation*}
+        \var[X]=\mean_Y[\var[X|Y]] +\var_Y[\mean[X|Y]]
+    \end{equation*}
+    $\textbf{Variance}$ is a measure how "spread" a value compared with the mean of the distribution, denoted as $\sigma^2$. This is define as follow:
+    \begin{equation*}
+        \begin{split}
+        \mathbb{V}[X] \triangleq \mathbb{E}[(X- \mu)^2] =\int(x-\mu)^2p(x)dx \\
+        = \int x^2p(x)dx+\mu\int p(x)dx-2\mu\int{xp(x)dx}\\
+        =\mathbb{E}[X^2]-\mu^2
+        \end{split}
+    \end{equation*}
+    \begin{minipage}{\linewidth}
+            \centering
+            \includegraphics[width=3in]{figures/Variance.png}
+    \end{minipage}
+    The \textbf{standard deviation} is defined as
+    \begin{equation*}
+        std[X]=\sqrt{\mathbb{V}[X]}=\sigma
+    \end{equation*}
+    Lower deviation, the distribution is closer to the mean. High deviation, the distribution is far away from the mean.
+
+    The variance of a shifted and scaled version of a random variable is given by
+    \begin{equation*}
+        \mathbb{V}[aX+b]=a^2\mathbb{V}[X]
+    \end{equation*}
+
+    If we have a set of n independent random variables, the variance of their sum is given by the sum of their variances:
+    \begin{equation*}
+        \mathbb{V}[\sum X_i]=\sum \mathbb{V}[X_i]
+    \end{equation*}
+    The variance of their product can also be derived:  
+    \begin{equation*}
+        \begin{split}
+            \mathbb{V}[\prod X_i]= \mathbb{E}[(\prod X_i)^2]-(\mathbb{E}[(\prod X_i)])^2 \\
+            = \prod(\sigma_i^2 + \mu_i^2)-\prod\mu_i^2
+        \end{split}
+    \end{equation*}
+
+    \textbf{Mode of a distribution}
+   
+    The \textbf{mode} of a distribution is the value with the highest probability mass or probability density
+    \begin{equation*}
+        \mathbf{x^*}= \arg \max_{\mathbf{x}} p(\mathbf{x})
+    \end{equation*}
+    If the distribution is multimodal, this may not be unique. Like the function have 2 global extrema(means having 2 highest probability), this can may not be unique.
+
+\subsection{Bayes' Rule}    
+\textbf{Bayes' Rule, and with extra conditioning (just add in $C$!)}
+         \[P({ A=a}|{ B=b})  = \frac{P({ B=a}|{ A=b})P({ A=a})}{P({ B=b})}\]
+         \[P({ A=a}|{ B=b}, { C=c}) = \frac{P({ B=b}|{ A=a}, { C=b})P({ A=a} | { C=c})}{P({ B=b} | { C=c})}\]
+  The term \( p(A) \) represents what we know about possible values of \( A \) before we see any data; this is called the \textbf{prior distribution}. (If \( A \) has \( K \) possible values, then \( p(A) \) is a vector of \( K \) probabilities, that sum to 1.) The term \( p(B \mid A = a) \) represents the distribution over the possible outcomes \( B \) we expect to see if \( A = a \); this is called the \textbf{observation distribution}. When we evaluate this at a point corresponding to the actual observations, \( b \), we get the function \( p(B = b \mid A = a) \), which is called the \textbf{likelihood}. (Note that this is a function of \( a \), since \( b \) is fixed, but it is not a probability distribution, since it does not sum to one.) Multiplying the prior distribution \( p(A = a) \) by the likelihood function \( p(B = b \mid A = a) \) for each \( a \) gives the unnormalized joint distribution \( p(A = a, B = b) \). We can convert this into a normalized distribution by dividing by \( p(B = b) \), which is known as the \textbf{marginal likelihood}, since it is computed by marginalizing over the unknown \( A \):
+
+\begin{equation*}
+    p(B = b) = \sum_{a' \in \mathcal{A}} p(A = a') p(B = b \mid A = a') 
+    = \sum_{a' \in \mathcal{A}} p(A = a', B = b)
+\end{equation*}
+\textbf{Odds Form of Bayes' Rule}
+\[\frac{P({ A}| { B})}{P({ A^c}| { B})} = \frac{P({ B}|{ A})}{P({ B}| { A^c})}\frac{P({ A})}{P({ A^c})}\]
+The \emph{posterior odds} of $A$ are the \emph{likelihood ratio} times the \emph{prior odds}. 
+\subsection{Bernoulli and binomial distributions}
+Given experiment tossing a coin, where the probability of event it lands head is $0\leq\theta \leq 1$, Y = 1 denoted that event, Y=0 denote the events that the coin lands tail. So $p(Y=1)=\theta$ and $p(Y=0)=1-\theta$, This called the $\textbf{Bernoulli distribution}$, it can be written as follows
+\[
+    Y \sim Ber(\theta)
+\]
 
 \end{multicols*}
 
