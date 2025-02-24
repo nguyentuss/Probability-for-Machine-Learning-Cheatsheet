@@ -57,6 +57,13 @@
 \newcommand{\Mult}{\textrm{Mult}}
 \newcommand{\mean}{\mathbb{E}}
 \newcommand{\var}{\mathbb{V}}
+\newcommand{\indicator}{\mathbb{I}}
+\newcommand{\inp}{\textbf{x}}
+\newcommand{\out}{\textbf{y}}
+\newcommand{\parameter}{\boldsymbol{\theta}}
+\newcommand{\nlogit}[1]{\log \left( \frac{#1}{1 - #1} \right)}
+\newcommand{\R}{\mathbb{R}}
+
 
 \geometry{top=.4in,left=.2in,right=.2in,bottom=.4in}
 
@@ -465,6 +472,172 @@ The \emph{posterior odds} of $A$ are the \emph{likelihood ratio} times the \emph
 Given experiment tossing a coin, where the probability of event it lands head is $0\leq\theta \leq 1$, Y = 1 denoted that event, Y=0 denote the events that the coin lands tail. So $p(Y=1)=\theta$ and $p(Y=0)=1-\theta$, This called the $\textbf{Bernoulli distribution}$, it can be written as follows
 \[
     Y \sim Ber(\theta)
+\]
+Where $\sim$ is mean that "is sampled from"
+or "is distribution from", Y have model $Ber(\theta)$
+The pmf is defined as follow:
+\[
+    \text{Ber}(y \mid \theta) =
+    \begin{cases} 
+        1 - \theta & \text{if } y = 0 \\
+        \theta & \text{if } y = 1
+    \end{cases}
+\]
+We can also write this:
+\[
+    \text{Ber}(y \mid \theta) \triangleq \theta^y(1-\theta)^{1-y}
+\]
+Bernoulli is a special case of $\textbf{Binomial distribution}$. While Bernoulli tossing a coin 1 time, Binomial distribution tossing a coin N times, we observe a set of N Bernoulli trials, denoted $y_n \sim Ber(\cdot\mid\theta)$ (the dot mean that is the placeholder, it can be any specific value (eg. $y=0$ or $y=1$). Define $s$ to be a number of heads, $s \triangleq \sum_{n=1}^{N}\indicator(y_n = 1)$. The distribution of s given by a binomial distribution:
+\begin{equation*}
+    Bin(s \mid\theta,N) \triangleq \binom{N}{s}\theta^s(1-\theta)^{N-s}
+\end{equation*}
+When we want to predict a binary variable $y \in \{0, 1\}$ given some inputs $x \in X$ , we need to use a conditional probability distribution of the form
+\begin{equation*}
+    p(y|\inp,\parameter) = Ber(y\mid f(\inp;\parameter))
+\end{equation*}
+Where $f(\inp;\parameter)$ is some function that predict the mean parameter of the output distribution. But this will require that $0\leq f(\inp;\parameter)\leq1$ to put into the conditional probability. So to avoid this, we can use any uncontrained function with this:
+\begin{equation*}
+    p(y|\inp,\parameter) = Ber(y\mid \sigma (f(\inp;\parameter)))
+\end{equation*}
+Where $\sigma()$ is the \textbf{sigmoid} or \textbf{logistic} function, defined as follows:
+\begin{equation*}
+    p=logistic(a)=\sigma(a) \triangleq\frac{1}{1+e^{-a}}= \frac{e^x}{1 + e^x}
+\end{equation*}
+where $a = f(\inp,\parameter)$. The inverse of this is called the $\textbf{logic function}$.
+\[
+    a=logit(p) =\sigma^{-1}(p) \triangleq \nlogit{p}
+\]
+So the sigmoid will tranform the function in $\R$ into probability $[0,1]$ and the logit will transform the probability into real numbers, making it easier to model with linear regression techniques.
+
+Some useful properties of these functions.
+\[
+\sigma(x) \triangleq \frac{1}{1 + e^{-x}} = \frac{e^x}{1 + e^x}
+\]
+
+\[
+\frac{d}{dx} \sigma(x) = \sigma(x)(1 - \sigma(x))
+\]
+
+\[
+1 - \sigma(x) = \sigma(-x)
+\]
+
+\[
+\sigma_+(x) \triangleq \log(1 + e^x) \triangleq \text{softplus}(x)
+\]
+
+\[
+\frac{d}{dx} \sigma_+(x) = \sigma(x)
+\]
+\subsection{Categorical and multinomial distributions}
+When the Bernoulli have only 2 classes, the categorical will represent a distribution over a finite sets of labels $y \in \{1..C\}$, which generalizes the Bernoulli to $C > 2$ values. The categorical discrete probability distribution with each parameter corresponding to one class.
+\[
+\text{Cat}(y \mid \parameter) \triangleq \prod_{c=1}^{C} \theta_c^{\mathbb{I}(y=c)}
+\]
+In other words, $p(y=c \mid\parameter)=\theta_c$. Note that the parameters are constrained so that $0\leq\theta\leq1$. We can write the categorical distribution in another way by converting the discrete variable y into a $\textbf{one-hot vector}$ with C elements. For example, if $C=3$, we encode the classes $1,2$ and $3$ as $(1,0,0),(0,1,0)$ and $(0,0,1)$. 
+Consider a fair 6-sided die, where each face corresponds to an outcome:
+
+\[
+y \in \{1, 2, 3, 4, 5, 6\}
+\]
+
+Each face has an equal probability of occurring, so the categorical distribution parameter \( \theta \) is:
+
+\[
+\theta = (\theta_1, \theta_2, \theta_3, \theta_4, \theta_5, \theta_6) = \left( \frac{1}{6}, \frac{1}{6}, \frac{1}{6}, \frac{1}{6}, \frac{1}{6}, \frac{1}{6} \right)
+\]
+
+If we roll a 3, then the one-hot encoding for \( y = 3 \) is:
+\[
+(0, 0, 1, 0, 0, 0)
+\]
+
+Substituting into the PMF:
+
+\[
+P(y = 3 \mid \theta) = \theta_1^0 \theta_2^0 \theta_3^1 \theta_4^0 \theta_5^0 \theta_6^0
+\]
+
+Since any number raised to the power of 0 is **1**, this simplifies to:
+
+\[
+P(y = 3 \mid \theta) = \theta_3 = \frac{1}{6}
+\]
+
+Thus, for a fair die, the probability of rolling a 3 is \( \frac{1}{6} \).
+
+Using one-hot encoding, each possible outcome can be written as:
+
+\[
+\begin{aligned}
+y = 1 &\rightarrow (1,0,0,0,0,0) \\
+y = 2 &\rightarrow (0,1,0,0,0,0) \\
+y = 3 &\rightarrow (0,0,1,0,0,0) \\
+y = 4 &\rightarrow (0,0,0,1,0,0) \\
+y = 5 &\rightarrow (0,0,0,0,1,0) \\
+y = 6 &\rightarrow (0,0,0,0,0,1) \\
+\end{aligned}
+\]
+Now, suppose we have a biased die with the following probabilities:
+\[
+\theta = (0.10, 0.15, 0.30, 0.20, 0.15, 0.10)
+\]
+
+The probability of rolling a 3 is now:
+
+\[
+P(y = 3 \mid \theta) = \theta_3 = 0.30
+\]
+The categorical distribution is a special case of the $\textbf{multinomial distribution}$. Suppose we observe $N$ categorical trials, $y_n \sim Cat(\cdot\mid\parameter)$, for $n = 1 : N$. Think of rolling a C-sided dice $N$ times. Let us define $y$ to be a vector that counts the number of times each face show up
+\( y_c = N_c \triangleq \sum_{n=1}^{N} \mathbb{I} (y_n = c) \). Now \( \mathbf{y} \) is no longer one-hot, but is ``multi-hot'', since it has a non-zero entry for every value of \( c \) that was observed across all \( N \) trials. The distribution of \( \mathbf{y} \) is given by the \textbf{multinomial distribution}:
+
+\[
+\mathcal{M}(\mathbf{y} \mid N, \parameter) \triangleq 
+\binom{N}{y_1 \dots y_C} \prod_{c=1}^{C} \theta_c^{y_c} =
+\binom{N}{N_1 \dots N_C} \prod_{c=1}^{C} \theta_c^{N_c}
+\]
+
+
+In the conditional case, we can define
+
+\[
+p(y \mid x, \theta) = \text{Cat}(y \mid f(x; \theta))
+\]
+
+which we can also write as
+
+\[
+p(y \mid x, \theta) = \mathcal{M}(y \mid 1, f(x; \theta))
+\]
+
+We require that \( 0 \leq f_c(x; \theta) \leq 1 \) and $
+\sum_{c=1}^{C} f_c(x; \theta) = 1.$
+
+To avoid the requirement that $f$ directly predict a probability vector, it common to pass the output from f into the $\textbf{softmax}$ function, also called the $\textbf{multinomial logit}$. It is defined as follows:
+\[
+    softmax(\mathbf{a})\triangleq
+    \begin{bmatrix}
+        \frac{e^{a_1}}{\sum_{c'=1}^{C}e^{c'}},...,
+        \frac{e^{a_c}}{\sum_{c'=1}^{C}e^{c'}}
+    \end{bmatrix}
+\]
+Similar with sigmoid, it will convert real value $\R^C$ into probability $[0,1]^C$.
+But there one weakness in this formula, suppose we have
+\[
+    p_c=\frac{e^c}{Z(\mathbf{a})}=\frac{e^c}{\sum_{c'=1}^{C}e^{c'}}
+\]
+Where $\mathbf{a}=f(\inp,\parameter)$, are the logits.
+Supose $\mathbf{a}=(1000,1000,1000)$, the computer will compute $inf$. Similarly, $\mathbf{a}=(-1000,-1000,-1000)$ now it will compute $0$. To avoid this, we use the following trick:
+\[
+    log\sum_{c'=1}^{C}e^{c'} = m +log\sum_{c'=1}^{C}e^{c'-m}
+\]
+This will hold any $m$, so that the exponential will smaller. It is common to use $m=\max_ca_c$ which ensures the the largest will be zero, so you will definitely not overflow, and even if you underflow, the answer will be sensible. This is known as the $\textbf{log-sum-exp trick}$.
+\[
+    lse(\mathbf{a})\triangleq \sum_{c'=1}^{C}e^{c'}
+\]
+Logarithm both side and we have
+\[
+    p(y=c|\inp)=e^{a_c-lse(\mathbf a)}
 \]
 
 \end{multicols*}
