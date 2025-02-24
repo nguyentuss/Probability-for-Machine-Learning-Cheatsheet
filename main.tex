@@ -63,6 +63,8 @@
 \newcommand{\parameter}{\boldsymbol{\theta}}
 \newcommand{\nlogit}[1]{\log \left( \frac{#1}{1 - #1} \right)}
 \newcommand{\R}{\mathbb{R}}
+\newcommand{\variance}{\sigma^2}
+\newcommand{\normal}{\mathcal{N}}
 
 
 \geometry{top=.4in,left=.2in,right=.2in,bottom=.4in}
@@ -639,6 +641,20 @@ Logarithm both side and we have
 \[
     p(y=c|\inp)=e^{a_c-lse(\mathbf a)}
 \]
+\subsection{Univariate Gaussian (normal) distribution}
+We defined the cdf of the Gaussian by:
+\[
+    \boldsymbol{\phi}(y;\mu,\variance)\triangleq\int_{-\infty}^{y}\normal(z,\mu,\variance)dz
+\]
+We can implemented using 
+\[
+    \boldsymbol{\phi}(y;\mu,\variance)=\frac{1}{2}[1+erf(z/\sqrt{2}]
+\]
+where $z=(y-\mu)/\sigma$ and $erf(u)$ is the $\textbf{error function}$,defined as
+\[
+    erf(u)\triangleq\frac{2}{\sqrt{\pi}}\int_{0}^{u}e^{-t}dt
+\]
+
 
 \end{multicols*}
 
