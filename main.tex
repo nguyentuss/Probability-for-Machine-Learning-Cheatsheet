@@ -686,6 +686,110 @@ Where $\parameter=(\weight,b,\variance)$. However we can also make the variance 
     p(y\mid\inp,\parameter)=\normal(y\mid \weight_{\mu}^T\inp+b,\sigma_+(\weight_\sigma^T\inp))
 \]
 where $\parameter=(\weight_{\mu},\weight_\sigma)$ are two forms of regression weights, and $\softplus{x}$ softplus function, that mas form $\R$ to $\R_+$.
+
+The Gaussian are famous because, it only have two parameters, mean and variance. Second, sum of independent r.v will approximate be a Gaussian distribution, making a good choice of modeling the "noise" data point.
+
+When the variance nearly to become 0. The gaussian will  approach to infinity narrow. We can defined
+\[
+\lim_{\sigma\rightarrow0}\N(y\mid\mu,\variance)\rightarrow\delta(y-\mu)
+\]
+Where $\delta$ is the dirac delta function, is defined
+\[
+    \delta(x) = 
+    \begin{cases}
+        +\infty & \text{if x=0} \\
+        0  & \text{if x}  \neq 0
+    \end{cases}
+\]
+We also defined
+\[
+    \delta_y(x) = 
+    \begin{cases}
+        +\infty & \text{if x=y} \\
+        0  & \text{if x}  \neq y
+    \end{cases}
+\]
+Where $\delta_y(x) = \delta(x-y)$
+\subsection{Some common other unvariative distribution}
+
+\begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=3.2in]{figures/common-uni-distribution.PNG}
+\end{minipage}
+$\textbf{Student t distribution}$
+\[
+\mathcal{T}(y | \mu, \sigma^2, \nu) \propto 
+\left[ 1 + \frac{1}{\nu} \left( \frac{y - \mu}{\sigma} \right)^2 \right]^{-\frac{\nu + 1}{2}}
+\]
+Difference with the Normal(Gaussian) distribution, the $\textbf{student t}$ will have a heavy tails, which mean they will closer to the $\textbf{mean}$. Where $\mu$ is the mean, $\sigma > 0$ is the scale parameter(not standard deviation), and $\nu$ is a degree of freedom (since large $\nu$ will act like a Gaussian). Note that the Student distribution has the following properties:
+\[
+\text{mean} = \mu, \quad \text{mode} = \mu, \quad \text{var} = \frac{\nu \sigma^2}{(\nu - 2)}
+\]
+
+The mean is only defined if $\nu > 1$. The variance is only defined if $\nu > 2$. For $\nu \gg 5$, the Student distribution rapidly approaches a Gaussian distribution and loses its robustness properties. It is common to use $\nu = 4$, which gives good performance in a range of problems.
+
+\textbf{Cauchy distribution}
+
+Since $\nu=1$ the Student distribution is known as a $\textbf{Cauchy}$ or $\textbf{Lorentz}$ distribution.
+\[
+    \mathcal{C}(x\mid\mu,\gamma)=\frac{1}{\pi\gamma}
+    \begin{bmatrix}
+        1+\left(\frac{x-\mu}{\gamma}\right)^2
+    \end{bmatrix}^{-1}
+\]
+Because the $\nu$ is small, they is a very heavy tail distribution.
+
+The $\textbf{Half Cauchy}$ distribution is a Cauchy (with $\mu=0$) This has a form. 
+\[
+    \mathcal{C}_+(x\mid \gamma) \triangleq \frac{2}{\gamma\pi}
+    \begin{bmatrix}
+        1+\left(\frac{x}{\gamma}\right)^2
+    \end{bmatrix}^{-1}
+\]
+This is useful in Bayesian modeling, where we want to use a distribution over a positive real value, but finite density.
+\vspace{8\baselineskip}
+
+\textbf{Laplace distribution}
+
+Another distribution with heavy tails is the \textbf{Laplace distribution}, also known as the \textbf{double sided exponential} distribution. This has the following pdf:
+
+\[
+\text{Laplace}(y | \mu, b) \triangleq \frac{1}{2b} \exp \left( -\frac{|y - \mu|}{b} \right)
+\]
+
+Here $\mu$ is a location parameter and $b > 0$ is a scale parameter. This distribution has the following properties:
+
+\[
+\text{mean} = \mu, \quad \text{mode} = \mu, \quad \text{var} = 2b^2
+\]
+\begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=3.2in]{figures/beta-gamma-distribution.PNG}
+\end{minipage}
+\textbf{Beta Distribution}
+
+The \textbf{beta distribution} has support over the interval $[0,1]$ and is defined as follows:
+
+\[
+\text{Beta}(x | a, b) = \frac{1}{B(a, b)} x^{a-1} (1 - x)^{b-1} 
+\]
+
+where $B(a, b)$ is the \textbf{beta function}, defined by
+
+\[
+B(a, b) \triangleq \frac{\Gamma(a) \Gamma(b)}{\Gamma(a + b)} 
+\]
+
+where $\Gamma(a)$ is the Gamma function defined by
+\[
+\Gamma(a) \triangleq \int_{0}^{\infty} x^{a-1} e^{-x} \,dx 
+\]
+We require $a, b > 0$ to ensure the distribution is integrable (i.e., to ensure $B(a, b)$ exists). If $a = b = 1$, we get the uniform distribution. If $a$ and $b$ are both less than 1, we get a bimodal distribution with ``spikes'' at 0 and 1; if $a$ and $b$ are both greater than 1, the distribution is unimodal.
+
+Note that the distribution has the following properties
+\[
+    \text{mean} = \frac{a}{a+b}, \quad \text{mode} = \frac{a-1}{a+b-2}, \quad \text{var} = \frac{ab}{(a+b)^2(a+b+1)}
+\]
 \end{multicols*}
 
 \end{document}
