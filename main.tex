@@ -65,6 +65,8 @@
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\variance}{\sigma^2}
 \newcommand{\normal}{\mathcal{N}}
+\newcommand{\weight}{\mathbf{w}}
+\newcommand{\softplus}[1]{\sigma_+(#1)}
 
 
 \geometry{top=.4in,left=.2in,right=.2in,bottom=.4in}
@@ -642,6 +644,10 @@ Logarithm both side and we have
     p(y=c|\inp)=e^{a_c-lse(\mathbf a)}
 \]
 \subsection{Univariate Gaussian (normal) distribution}
+ \begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=3in]{figures/gauss_plot.PNG}
+\end{minipage}
 We defined the cdf of the Gaussian by:
 \[
     \boldsymbol{\phi}(y;\mu,\variance)\triangleq\int_{-\infty}^{y}\normal(z,\mu,\variance)dz
@@ -654,8 +660,32 @@ where $z=(y-\mu)/\sigma$ and $erf(u)$ is the $\textbf{error function}$,defined a
 \[
     erf(u)\triangleq\frac{2}{\sqrt{\pi}}\int_{0}^{u}e^{-t}dt
 \]
+The pdf of the Gaussian is given by
+\[
+    \normal(y\mid\mu,\variance)=\frac{1}{\sqrt{2\pi\variance}}e^{-\frac{{1}}{2\variance}(y-\mu)^2}
+\]
+Where $\sqrt{2\pi\variance}$ is the normalization constant needed to ensure the density needed to ensure the density integrates to 1.
 
+The mean of the distribution
+\[\mean[\normal(\cdot\mid\mu,\variance)]=\mu\]
+The standard deviation is defined as
+\[std[\normal(\cdot\mid\mu,\variance)]=\sigma\]
 
+It can be helpful to make a parameters of the Gaussian be a function of some input variables, we want to create a conditional density model of the form
+\[
+    p(y\mid\inp,\parameter)=\normal(y\mid f_{\mu}(\inp;\parameter),f_{\sigma}(\inp;\parameter)^2)
+\]
+Where $f_{\mu}(\inp;\parameter)\in\R$ predicts a mean, and $f_{\sigma}(\inp;\parameter)\in\R_+$ predicts a variance.
+
+Assume the variance is fixed, and is independent with the input. This is called \textbf{homoscedastic regression}. Furthermore, it is common to assume the mean is a linear function of the input.
+\[
+    p(y\mid\inp,\parameter)=\normal(y\mid \weight^T\inp+b,\variance)
+\]
+Where $\parameter=(\weight,b,\variance)$. However we can also make the variance depend on the input; this is called $\textbf{heteroskedastic regression}$. In linear regression, we have
+\[
+    p(y\mid\inp,\parameter)=\normal(y\mid \weight_{\mu}^T\inp+b,\sigma_+(\weight_\sigma^T\inp))
+\]
+where $\parameter=(\weight_{\mu},\weight_\sigma)$ are two forms of regression weights, and $\softplus{x}$ softplus function, that mas form $\R$ to $\R_+$.
 \end{multicols*}
 
 \end{document}
