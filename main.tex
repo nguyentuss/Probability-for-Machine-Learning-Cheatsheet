@@ -67,6 +67,8 @@
 \newcommand{\normal}{\mathcal{N}}
 \newcommand{\weight}{\mathbf{w}}
 \newcommand{\softplus}[1]{\sigma_+(#1)}
+\newcommand{\Cov}{\mathbf{\Sigma}}
+\newcommand{\Mean}{\boldsymbol{\mu}}
 
 
 \geometry{top=.4in,left=.2in,right=.2in,bottom=.4in}
@@ -790,6 +792,160 @@ Note that the distribution has the following properties
 \[
     \text{mean} = \frac{a}{a+b}, \quad \text{mode} = \frac{a-1}{a+b-2}, \quad \text{var} = \frac{ab}{(a+b)^2(a+b+1)}
 \]
+\subsection{Transfomation of random variables}
+Suppose $\inp\sim p()$ in some random variables, and $\out=f(\inp)$, is some transformation of it. We discuss how to compute $f(\out)$
+
+\textbf{Discrete case}
+
+In discrete r.v, we can use pmf to compute the $p(y)$ by summing up the pmf of all $\inp$ such that $f(\inp)=\out$.
+\[
+    p_{\out}(\out)=\sum_{\inp:f(\inp)=\out}p_{\inp}(\inp)
+\]
+Suppose $f(\inp)=1$ if $\inp$ is even, $f(\inp)=0$ otherwise, and \(p_{\inp}(\inp)\) have a distribution $\{1,2,...,10\}$, so $p_{\out}(1)=\sum_{x\in\{2,4,..,10\}}p_{\inp}(x)=0.5$ and $p_{\out}(0)=0.5$ either. Note that in this example, $f(\inp)$ is $\textbf{many-to-one}$ function.
+
+\textbf{Continuous case}
+
+Unlikely with discrete r.v, the continuous does not have pmf, since $p_{\inp}(\inp)$ is a density function. But we can work with cdf's.
+
+\[
+    P_{\out}(\out)=Pr(Y\leq \out) = Pr(f(\inp) \leq \out)=Pr(\inp\in\{x \mid f(x) \leq \out\}
+\]
+
+If $f$ invertible, we can derivative the cdf to have the pdf, but if not, we can use $\textbf{Monte Carlo approximation}$ instead.
+
+\textbf{Invertible transformation (bijections or one-to-one)}
+\begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=3.2in]{figures/bijection.PNG}
+\end{minipage}
+We will discuss about the monotonic function (linear) and invertible function. Suppose $x\sim Uni(0,1)$ and $y=f(x)=2x+1$. The transformation will like the figure $(a)$ above.
+Now consider the general case for any $p_x(x)$ and any monotonic $f$: $\R\rightarrow\R$. Let $g=f^{-1}$, $y=f(x),x=g(y)$. We have
+\[
+    P_y(y)=Pr(f(X)\leq y)=Pr(X\leq f^{-1}(y))=P_x(f^{-1}(y))=P_x(g(y))
+\]
+Taking derivative, we have
+\[
+    p_y(y) \triangleq  \frac{d}{dy}P_y(y)=\frac{d}{dx}\frac{dx}{dy}P_x(g(y))=\frac{dx}{dy}p_x(g(y))
+\]
+Since \(\frac{d}{dy}=\frac{dx}{dy}\frac{d}{dx}\) by the chain rule. We can derived the formula if $f$ is a monotonically decrease function, to handle the general case we take the absolute to get
+\[
+    p_y(y)=p_x(x)|\frac{dx}{dy}|
+\]
+This is call the $\textbf{change variables}$ of the function.
+
+Now, let discuss about the multivariate cases. Let $f$ is invertible function that maps $\R^n\rightarrow\R^n$, with invertible $g$. $\out=f(\inp)$, defined
+\[
+    p_y(\out)=p_x(\inp)|det[\mathbf{J}_g(\inp)|
+\]
+where $\mathbf{J}_g=\frac{d\mathbf{g(y)}}{d\mathbf{y^T}}$ and $\mathbf J$ is Jacobian function.
+
+\textbf{Convolution theorem}
+
+\begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=2in]{figures/convolution.PNG}
+\end{minipage}
+
+Let $Y=X_1+X_2$ such that $X_1,X_2$ is independent r.v. If this is the discrete case, define the formula
+\[
+    p(Y=y)=\sum_{-\infty}^{x}p(X_1=x)p(X_2=y-x)
+\]
+In continuous case, we have
+\[
+    p(y)=\int p_1(x_1)p_2(y-x_1)dx_1
+\]
+We can write equation as follows
+\[
+    p = p_1 \circledast p_2
+\]
+where $\circledast$ represents the $\textbf{convolution}$ operator.
+
+\textbf{Central Limit theorem}
+\begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=3in]{figures/CLT.PNG}
+\end{minipage}
+Suppose we have $N$ r.v(don't need to be a Gaussian) $\textbf{independent}$ and $\textbf{i.i.d}$(independent and same distribution), sum of those r.v will approximate a Gaussian distribution.
+
+$\textbf{Monte Carlo Approximation}$
+\begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=3in]{figures/monte-carlo.PNG}
+\end{minipage}
+
+Suppose $\inp$ is a random variables, and $\out=f(\inp)$ is some function of $\inp$. It is often  difficult to compute $p(\out)$. One simple but powerful is draw a specific number of samples from the $\inp$ distribution, and then to use these samples (instead of the distribution) to approximate $p(\out)$.
+
+For example, suppose $x \sim \mathrm{Unif}(-1,1)$ and $y = f(x) = x^2$. 
+We can approximate $p(y)$ by drawing many samples from $p(x)$ 
+(using a uniform random number generator), squaring them, and 
+computing the resulting empirical distribution, which is given by
+
+\begin{equation*}
+p_s(y) \;\triangleq\; \frac{1}{N_s} \sum_{s=1}^{N_s} \delta\bigl(y - y_s\bigr)
+\end{equation*}
+
+\subsection{Multivariate Models}
+
+\textbf{Covariance}
+
+The $\textbf{covariance}$ between two rv's $X$ and $Y$ measures the \textbf{direction} of linear relationship to which $X$ and $Y$ are (linearly) related. It quantifies how to random variables change together.
+\begin{itemize}
+    \item Positive: If the one increase, the other also increase.
+    \item Negative: If the one incrase while the other decrase
+    \item Zero There are no relationship between the variables. 
+\end{itemize}
+
+\[
+    \cov[X,Y]\triangleq\mean[(X-\mean[X])(Y-\mean[Y])]=\mean[XY]-\mean[X]\mean[Y]
+\]
+If $\inp$ is a D-dimensional random vector, its $\textbf{covariance matrix}$ is defined to be the following symmetric
+\[
+    \cov[\inp]\triangleq\mean[(\inp-\mean[\inp])(\inp-\mean[\inp])^T] \triangleq \boldsymbol{\Cov} = 
+\]
+\[
+    \begin{pmatrix}
+        \var[X_1] & \cov[X_1,X_2] & \cdots & \cov[X_1,X_D] \\
+        \cov[X_2,X_1] & \var[X_2] & \cdots &\cov[X_2,X_D] \\
+        \vdots & \vdots & \ddots & \vdots \\ 
+        \cov[X_D,X_1] & \cov[X_D,X_2] & \cdots & \var[X_D]
+    \end{pmatrix}
+\]
+from which we can get the important result
+\[
+    \mean[\inp\inp^T] = \Cov +\Mean\Mean^T
+\]
+Another useful result is that the covariance of a linear transfomation
+\[
+    \cov[\mathbf{A}\inp+b]=\mathbf{A}\cov[\inp]\mathbf{A}^T
+\]
+The $\textbf{cross-covariance}$ between two random vector is define by
+\[
+    \cov[\inp,\out]=\mean[(\inp-\mean[\inp])(\out-\mean[\out])^T]
+\]
+
+\textbf{Correlation}
+
+\begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=3in]{figures/correlation.PNG}
+\end{minipage}
+
+Covariance can be negative or positive infinity. Sometimes it is more convenient to work with a normalized measure, with a finite lower and upper bound. The $\textbf{correltion coefficient}$ between $X$ and $Y$ is defined as
+\[
+    \rho\triangleq\corr[X,Y]\triangleq\frac{\cov[X,Y]}{\sqrt{\var[X]\var[Y]}}
+\]
+While the covariance can be any real value $\R$, correlation is always between $-1\leq\rho\leq1$. In the case of a vector $\inp$ of related 
+\begin{align*}
+    & \corr(\inp)= \\ 
+    &\begin{pmatrix}
+    1 & \!\!\!\!\!\!\! \frac{\mathbb{E}[(X_1 - \mu_1)(X_2 - \mu_2)]}{\sigma_1 \sigma_2} & \!\!\!\!\!\!\! \cdots & \!\!\!\!\!\!\! \frac{\mathbb{E}[(X_1 - \mu_1)(X_D - \mu_D)]}{\sigma_1 \sigma_D} \\
+    \frac{\mathbb{E}[(X_2 - \mu_2)(X_1 - \mu_1)]}{\sigma_2 \sigma_1} & \!\!\!\!\!\!\! 1 & \!\!\!\!\!\!\!\cdots & \!\!\!\!\!\!\!\frac{\mathbb{E}[(X_2 - \mu_2)(X_D - \mu_D)]}{\sigma_2 \sigma_D} \\
+    \vdots &\!\!\!\!\!\!\! \vdots &\!\!\!\!\!\!\! \ddots & \!\!\!\!\!\!\!\vdots \\ 
+    \frac{\mathbb{E}[(X_D - \mu_D)(X_1 - \mu_1)]}{\sigma_D \sigma_1} &\!\!\!\!\!\!\! \frac{\mathbb{E}[(X_D - \mu_D)(X_2 - \mu_2)]}{\sigma_D \sigma_2} & \!\!\!\!\!\!\!\cdots &\!\!\!\!\!\!\! 1
+    \end{pmatrix}
+\end{align*}
+
+
 \end{multicols*}
 
 \end{document}
