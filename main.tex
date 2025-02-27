@@ -884,11 +884,13 @@ computing the resulting empirical distribution, which is given by
 p_s(y) \;\triangleq\; \frac{1}{N_s} \sum_{s=1}^{N_s} \delta\bigl(y - y_s\bigr)
 \end{equation*}
 
-\subsection{Multivariate Models}
+\section{Multivariate Models}\smallskip \hrule height 2pt \smallskip
+
+\subsection{Joint distributions for multiple random variables}
 
 \textbf{Covariance}
 
-The $\textbf{covariance}$ between two rv's $X$ and $Y$ measures the \textbf{direction} of linear relationship to which $X$ and $Y$ are (linearly) related. It quantifies how to random variables change together.
+The $\textbf{covariance}$ between two rv's $X$ and $Y$ measures the \textbf{direction} of $\textbf{linear relationship}$ to which $X$ and $Y$ are (linearly) related. It quantifies how to random variables change together.
 \begin{itemize}
     \item Positive: If the one increase, the other also increase.
     \item Negative: If the one incrase while the other decrase
@@ -945,6 +947,59 @@ While the covariance can be any real value $\R$, correlation is always between $
     \end{pmatrix}
 \end{align*}
 
+But there is one fact that \textbf{Uncorrelated does nos imply independent}. Let $X\sim\Unif(-1,-1)$ and $Y=X^2$. If $X$ and $Y$ are independent, meaning $p(X,Y)=p(X)p(Y)$, then $\cov[X,Y]=0$ and $\corr[X,Y]=0$ so it independent does not imply independent. But that not true, clearly $Y$ depend on $X$ . In general, there are several data sets where $X$ and $Y$ are clear dependence between $X$ and $Y$, and yet the correlation coefficient is $0$.
+
+\textbf{Simpson Paradox}
+
+\begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=3in]{figures/SimpsonParadox.PNG}
+\end{minipage}
+The Simpson say that a statistical trend or relationship that appears in several different group of data but can disappear if these group or combine. 
+
+\subsection{The multivariate Gaussian (normal) distribution}
+
+The multivariate Gaussian (normal) distribution is a generalization of the univariate of the univariate gaussian to multiple dimensions.
+
+\[
+    \N(\out,\Mean,\Cov) \triangleq \frac{1}{(2\pi)^{D/2}|\Cov|^{1/2}}\exp\left(-\frac{1}{2}(\out-\Mean)^T\Cov^{-1}(\out-\Mean)\right)
+\]
+
+where $\Mean = \mean[\out] \in R^D$ is the mean vector, and $\Cov=\cov[\out]$ is the $D\times D$ $\textbf{covariance matrix}$.
+
+\begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=3in]{figures/MVN.PNG}
+\end{minipage}
+In 2d, the MVN is know as the $\textbf{Bivariate Gaussian}$ distribution. The pdf can be defined as $\out\sim\N(\Mean,\Cov)$, where $\Mean,\out\in\R^2$ and 
+\[
+    \Cov=
+    \begin{pmatrix}
+        \sigma_1^2  & \rho\sigma_1\sigma_2  \\
+        \rho\sigma_1\sigma_2 & \sigma_2^2
+    \end{pmatrix}
+\]
+
+$\textbf{Mahalanobis distance}$
+
+A measure of the distance between a point and distribution, considering a correlation variables. It useful because it account for a shape of the data distribution. The notation is $\Delta$ between $\out$ and $\Mean$ is defined.
+
+\[
+    \Delta \triangleq (\out-\Mean)^T\Cov^{-1}(\out-\Mean)
+\]
+Thus contours of constant (log) probability are equivalent to contours of constant Mahalanobis distance.
+
+To gain insight into the contours of constant Mahalanobis distance, we exploit the fact that $\Sigma$, and hence $\Lambda = \Sigma^{-1}$, are both positive definite matrices (by assumption). Consider the following eigendecomposition of $\Sigma$:
+
+\[
+\Sigma = \sum_{d=1}^{D} \lambda_d u_d u_d^T 
+\]
+
+We can similarly write
+
+\[
+\Sigma^{-1} = \sum_{d=1}^{D} \frac{1}{\lambda_d} u_d u_d^T 
+\]
 
 \end{multicols*}
 
