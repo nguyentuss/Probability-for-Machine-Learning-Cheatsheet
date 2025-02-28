@@ -4,7 +4,7 @@
 \usepackage{ifthen}
 \usepackage[landscape]{geometry}
 \usepackage{graphicx}
-\usepackage{amsmath, amssymb, amsthm}
+\usepackage{amsmath, amssymb, amsthm , bm}
 \usepackage{latexsym, marvosym}
 \usepackage{pifont}
 \usepackage{lscape}
@@ -982,11 +982,16 @@ In 2d, the MVN is know as the $\textbf{Bivariate Gaussian}$ distribution. The pd
 
 $\textbf{Mahalanobis distance}$
 
-A measure of the distance between a point and distribution, considering a correlation variables. It useful because it account for a shape of the data distribution. The notation is $\Delta$ between $\out$ and $\Mean$ is defined.
-
+The pdf of a $\textbf{multivariate Gaussian}$ distribution
 \[
-    \Delta \triangleq (\out-\Mean)^T\Cov^{-1}(\out-\Mean)
+    \log p(y\mid\Mean,\Cov)=-\frac{1}{2}(\out-\Mean)^T\Cov^{-1}(\out-\Mean) + const
 \]
+where $\out$ is a data point(vector), $\Mean$ is the mean vector, $\Cov$ is the covariance matrix. The quadratic term $(\out-\Mean)^T\Cov^{-1}(\out-\Mean)$ represents the $\textbf{Mahalanobuis distance squared}$.
+\[
+    \Delta^2 \triangleq (\out-\Mean)^T\Cov^{-1}(\out-\Mean)
+\]
+A distance measure how far between a point and distribution, considering a correlation variables. It useful because it account for a shape of the data distribution. The notation is $\Delta$ between $\out$ and $\Mean$ is defined.
+
 Thus contours of constant (log) probability are equivalent to contours of constant Mahalanobis distance.
 
 To gain insight into the contours of constant Mahalanobis distance, we exploit the fact that $\Sigma$, and hence $\Lambda = \Sigma^{-1}$, are both positive definite matrices (by assumption). Consider the following eigendecomposition of $\Sigma$:
@@ -994,12 +999,98 @@ To gain insight into the contours of constant Mahalanobis distance, we exploit t
 \[
 \Sigma = \sum_{d=1}^{D} \lambda_d u_d u_d^T 
 \]
+where $u_d$ are the $\textbf{eigenvectors}$ of $\Cov$, $\lambda_d$ are the $\textbf{eigenvalues}$ of $\Cov$.  
 
-We can similarly write
+Since $\Cov$ is positive definite, we can similarly write the inverse
 
 \[
 \Sigma^{-1} = \sum_{d=1}^{D} \frac{1}{\lambda_d} u_d u_d^T 
 \]
+This decomposition allows to $\textbf{rotate and scale}$ the coordinate system. Define $z_d\triangleq u_d^T(\out-\Mean)$, so $z=U(\out-\Mean)$. Then we can write the Mahalanobis distance as follows
+\begin{align*}
+    (\out-\Mean)^T\Cov^{-1}(\out-\Mean)=(\out-\Mean)^T(\sum_{d=1}^{D}\frac{1}{\lambda_d}u_du_d^T)(\out-\Mean) \\
+    =\sum_{d=1}^{D}\frac{1}{\lambda_d}(\out-\Mean)^Tu_du_d^T(\out-\Mean)=\sum_{d=1}^{D}\frac{z_d^2}{\lambda_d}
+\end{align*}
+
+$\textbf{Marinals and conditionals of an MVN}$
+
+Suppose $\mathbf{y} = (y_1, y_2)$ is jointly Gaussian with parameters
+
+\[
+    \bm{\mu} =
+    \begin{pmatrix}
+    \mu_1 \\
+    \mu_2
+    \end{pmatrix}, \quad
+    \bm{\Sigma} =
+    \begin{pmatrix}
+    \Sigma_{11} & \Sigma_{12} \\
+    \Sigma_{21} & \Sigma_{22}
+    \end{pmatrix}, \quad
+    \bm{\Lambda} = \bm{\Sigma}^{-1} =
+    \begin{pmatrix}
+    \Lambda_{11} & \Lambda_{12} \\
+    \Lambda_{21} & \Lambda_{22}
+    \end{pmatrix}
+\]
+
+where $\bm{\Lambda}$ is the \textbf{precision matrix}. Then the marginals are given by
+\begin{align*}
+    p(\out_1)=\N(\out_1\mid\Mean_1,\Cov_{11}) \\ 
+    p(\out_2)=\N(\out_2\mid\Mean_2,\Cov_{22})  
+\end{align*}
+and the posterior conditional is given by
+\begin{align*}
+    p(\out_1,\out_2)=\N(\out_1\mid\Mean_{1|2},\Cov_{1|2}) \\
+    \Mean_{1|2}=\Mean_1+\Cov_{11}\Cov_{22}^{-1}(y_2-\Mean_2) \\
+    =\Mean_1-\Lambda_{11}^{-1}\Lambda_{12}^{-1}(\out_2-\Mean_2) \\
+    = \Cov_{1|2}(\Lambda_{11}\Mean_1-\Lambda_{12}(\out_2-\Mean_2))\\
+    \Cov_{1|2}=\Cov_{11}-\Cov_{12}\Cov_{22}^{-1}\Cov_{21}=\Lambda_{11}^{-1}
+\end{align*}
+Let us consider a 2d example. The covariance matrix is
+
+\[
+\bm{\Sigma} =
+\begin{pmatrix}
+\sigma_1^2 & \rho \sigma_1 \sigma_2 \\
+\rho \sigma_1 \sigma_2 & \sigma_2^2
+\end{pmatrix}
+\]
+
+The marginal \( p(y_1) \) is a 1D Gaussian, obtained by projecting the joint distribution onto the \( y_1 \) line:
+
+\[
+p(y_1) = \mathcal{N}(y_1 \mid \mu_1, \sigma_1^2)
+\]
+
+Suppose we observe \( Y_2 = y_2 \); the conditional \( p(y_1 | y_2) \) is obtained by "slicing" the joint distribution through the \( Y_2 = y_2 \) line:
+
+\[
+p(y_1 | y_2) = \mathcal{N} \left( y_1 \Big| \mu_1 + \frac{\rho \sigma_1 \sigma_2}{\sigma_2^2} (y_2 - \mu_2), \sigma_1^2 - \frac{(\rho \sigma_1 \sigma_2)^2}{\sigma_2^2} \right)
+\]
+
+If \( \sigma_1 = \sigma_2 = \sigma \), we get
+
+\[
+p(y_1 | y_2) = \mathcal{N} \left( y_1 \Big| \mu_1 + \rho (y_2 - \mu_2), \sigma^2 (1 - \rho^2) \right)
+\]
+
+For example, suppose \( \rho = 0.8 \), \( \sigma_1 = \sigma_2 = 1 \), \( \mu_1 = \mu_2 = 0 \), and \( y_2 = 1 \). We see that \( \mathbb{E}[y_1 | y_2 = 1] = 0.8 \), which makes sense, since \( \rho = 0.8 \) means that we believe that if \( y_2 \) increases by 1 (beyond its mean), then \( y_1 \) increases by 0.8. We also see 
+
+\[
+\text{Var}(y_1 | y_2 = 1) = 1 - 0.8^2 = 0.36.
+\]
+
+This also makes sense: our uncertainty about \( y_1 \) has gone down, since we have learned something about \( y_1 \) (indirectly) by observing \( y_2 \). If \( \rho = 0 \), we get \( p(y_1 | y_2) = \mathcal{N}(y_1 | \mu_1, \sigma_1^2) \), since \( y_2 \) conveys no information about \( y_1 \) if they are uncorrelated (and hence independent).
+
+\textbf{Example Missing data}
+
+Suppose we sampled $N=10$ vectors from a $8D$ Gaussian, and then hid $50 \%$ of data. Then compute the missing given the observed entries and the true model parameters. More precisely, for each example of $n$ in the data matrix, we compute $p(\out_{n,h}|\out_{n,v},\parameter)$, $y$ is the data point, $v$ are the indices of the visible features, and $h$ are the remaining indices of the hidden features, and $\parameter=(\Mean,\Cov)$. So we can compute the marginal distribution if the distribution of each missing variable $i\in\mathbf{h},p(y_{n,i}\mid y_{n,\mathbf{v}},\parameter)$. From the marginal, we compute the  posterior mean
+\[
+    \bar{y}_{n,i} = \mathbb{E} \left[ y_{n,i} \mid \mathbf{y}_{n,v}, \boldsymbol{\theta} \right].
+\]
+
+The posterior mean represents our “best guess” about the true value of that entry, in the sense that it minimizes our expected squared error. We can use $\var[y_{n,i}\mid y_{n,v},\parameter]$ as a measure of the confidence in this guess. Because the prediction are the mean of the marginal distribution, if the variance is small, our prediction
 
 \end{multicols*}
 
