@@ -65,10 +65,11 @@
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\variance}{\sigma^2}
 \newcommand{\normal}{\mathcal{N}}
-\newcommand{\weight}{\mathbf{w}}
+\newcommand{\weight}{\mathbf{W}}
 \newcommand{\softplus}[1]{\sigma_+(#1)}
 \newcommand{\Cov}{\mathbf{\Sigma}}
 \newcommand{\Mean}{\boldsymbol{\mu}}
+\newcommand{\bias}{\mathbf{b}}
 
 
 \geometry{top=.4in,left=.2in,right=.2in,bottom=.4in}
@@ -1090,8 +1091,51 @@ Suppose we sampled $N=10$ vectors from a $8D$ Gaussian, and then hid $50 \%$ of 
     \bar{y}_{n,i} = \mathbb{E} \left[ y_{n,i} \mid \mathbf{y}_{n,v}, \boldsymbol{\theta} \right].
 \]
 
-The posterior mean represents our “best guess” about the true value of that entry, in the sense that it minimizes our expected squared error. We can use $\var[y_{n,i}\mid y_{n,v},\parameter]$ as a measure of the confidence in this guess. Because the prediction are the mean of the marginal distribution, if the variance is small, our prediction
+The posterior mean represents our “best guess” about the true value of that entry, in the sense that it minimizes our expected squared error. We can use $\var[y_{n,i}\mid y_{n,v},\parameter]$ as a measure of the confidence in this guess. Because the prediction are the mean of the marginal distribution, if the variance is small, our prediction. The conditional distribution estimate all the possible value of the missing data. If the variance is small, the distribution will "close" to the mean, and actual value will have the higher chance to be same as the mean (prediction value), otherwise, if the variance is big, the distribution will "spread" and far a way a mean, and the actual value will have the lower chance to be same as the mean.
+\subsection{Linear Gaussian systems}
 
+We will extend this approach to handle the noise observation. Let $z\in\R^L$ be unknown data value, and $y\in\R^D$ be some noise measurement of $z$s, we assume this variables related to the joint distribution.
+\begin{align*}
+    p(z)=\N(z\mid\Mean_z,\Cov_z) \\
+    p(\out|z)=\N(\out\mid\weight\inp+\bias,\Cov_y)
+\end{align*}
+where $\weight$ is a matrix of size $D\times L$. This is an example of a $\textbf{linear Gaussian system}$.
+
+The corresponding joint distribution, $p(z,\out)=p(z)p(\out|z)$, is the and $L+R$ dimensional Gaussian, with mean and covariance 
+
+\[
+\mu =
+\begin{pmatrix}
+\mu_z \\
+\mathbf{W} \mu_z + \mathbf{b}
+\end{pmatrix}
+\]
+
+\[
+\Sigma =
+\begin{pmatrix}
+\Sigma_z & \Sigma_z \mathbf{W}^T \\
+\mathbf{W} \Sigma_z & \Sigma_y + \mathbf{W} \Sigma_z \mathbf{W}^T
+\end{pmatrix}
+\]
+\textbf{Bayes rule for Gaussians}
+
+\begin{align*}
+    p(z|\out)=\N(z|\Mean_{z|\out},\Cov_{z|\out}) \\
+    \Cov_{z|\out}^{-1}=\Cov_{z}^{-1} + \weight^T\Cov_{z}^{-1}\weight \\ 
+    \Mean_{z|\out}= \Cov_{z|\out}[\weight^T\Cov_y^{-1}(\out-\bias)+\Cov_z^{-1}\Mean_z]
+\end{align*}
+The normalization constant of the posterior is given by
+\begin{align*}
+    p(\out)=\int\N(z|\Mean_z,\Cov_z)\N(\out|\weight z + \bias,\Cov_y)dz \\= \N(\out|\weight\Mean_z+b,\Cov_z+\weight\Cov_z\weight^T)
+\end{align*}
+\textbf{Derivation}
+
+The log of the joint distribution
+\begin{align*}
+    \log p(z,\out)=-\frac{1}{2}(z-\Mean_z)^T\Cov_z^{-1}(z-\Mean_z)\\ -\frac{1}{2}(\out-\weight z-\bias)^T\Cov_y^{-1}(\out-\weight z - \bias)
+\end{align*}
+ 
 \end{multicols*}
 
 \end{document}
