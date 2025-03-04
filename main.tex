@@ -22,6 +22,8 @@
 \usepackage{xfrac}
 \usepackage[pdftex,
             pdfauthor={William Chen},
+            bookmarksopen=true,
+            bookmarksnumbered=true,
             pdftitle={Probability Cheatsheet},
             pdfsubject={A cheatsheet pdf and reference guide originally made for Stat 110, Harvard's Introduction to Probability course. Formulas and equations for your statistics class.},
             pdfkeywords={probability} {statistics} {cheatsheet} {pdf} {cheat} {sheet} {formulas} {equations}
@@ -70,6 +72,8 @@
 \newcommand{\Cov}{\mathbf{\Sigma}}
 \newcommand{\Mean}{\boldsymbol{\mu}}
 \newcommand{\bias}{\mathbf{b}}
+\newcommand{\Weight}{\mathbf{w}}
+\newcommand{\identity}{\mathbf{I}}
 
 
 \geometry{top=.4in,left=.2in,right=.2in,bottom=.4in}
@@ -465,7 +469,7 @@ Compiled by Tu Nguyen Ngoc. Material based on Kelvin Murphy's book (\texttt{\hre
 \subsection{Bayes' Rule}    
 \textbf{Bayes' Rule, and with extra conditioning (just add in $C$!)}
          \[P({ A=a}|{ B=b})  = \frac{P({ B=a}|{ A=b})P({ A=a})}{P({ B=b})}\]
-         \[P({ A=a}|{ B=b}, { C=c}) = \frac{P({ B=b}|{ A=a}, { C=b})P({ A=a} | { C=c})}{P({ B=b} | { C=c})}\]
+         \[P({ A=a}|{ B=b}, { C=c}) = \frac{P({ B=b}|{ A=a}, { C=c})P({ A=a} | { C=c})}{P({ B=b} | { C=c})}\]
   The term \( p(A) \) represents what we know about possible values of \( A \) before we see any data; this is called the \textbf{prior distribution}. (If \( A \) has \( K \) possible values, then \( p(A) \) is a vector of \( K \) probabilities, that sum to 1.) The term \( p(B \mid A = a) \) represents the distribution over the possible outcomes \( B \) we expect to see if \( A = a \); this is called the \textbf{observation distribution}. When we evaluate this at a point corresponding to the actual observations, \( b \), we get the function \( p(B = b \mid A = a) \), which is called the \textbf{likelihood}. (Note that this is a function of \( a \), since \( b \) is fixed, but it is not a probability distribution, since it does not sum to one.) Multiplying the prior distribution \( p(A = a) \) by the likelihood function \( p(B = b \mid A = a) \) for each \( a \) gives the unnormalized joint distribution \( p(A = a, B = b) \). We can convert this into a normalized distribution by dividing by \( p(B = b) \), which is known as the \textbf{marginal likelihood}, since it is computed by marginalizing over the unknown \( A \):
 
 \begin{equation*}
@@ -536,6 +540,36 @@ Some useful properties of these functions.
 \[
 \frac{d}{dx} \sigma_+(x) = \sigma(x)
 \]
+In particular, an issue commonly seen with activation functions is getting zero (or close to zero) gradient flow during backpropagation
+
+\textbf{When} \( x = 0 \):
+
+\[
+f(0) = \frac{1}{1 + e^0} = \frac{1}{2}
+\]
+
+\[
+f'(0) = \frac{1}{2} \cdot \left(1 - \frac{1}{2} \right) = \frac{1}{4} = 0.25
+\]
+
+This is \textbf{not very small} (but smaller than 1).
+
+\textbf{When} \( x \gg 0 \) (large positive):
+
+\[
+f(x) \to 1, \quad f'(x) = 1 \cdot (1 - 1) = 0
+\]
+
+\textbf{Gradient approaches 0}.
+
+\textbf{When} \( x \ll 0 \) (large negative):
+
+\[
+f(x) \to 0, \quad f'(x) = 0 \cdot (1 - 0) = 0
+\]
+
+\textbf{Gradient also approaches 0}.
+
 \subsection{Categorical and multinomial distributions}
 When the Bernoulli have only 2 classes, the categorical will represent a distribution over a finite sets of labels $y \in \{1..C\}$, which generalizes the Bernoulli to $C > 2$ values. The categorical discrete probability distribution with each parameter corresponding to one class.
 \[
@@ -981,6 +1015,8 @@ In 2d, the MVN is know as the $\textbf{Bivariate Gaussian}$ distribution. The pd
     \end{pmatrix}
 \]
 
+A diagonal covariance has $D$ parameters, and 0s in off-diagonal. A sphere covariance, also called isotropic variance matrix is form by $\Cov=\variance\indicator$.
+
 $\textbf{Mahalanobis distance}$
 
 The pdf of a $\textbf{multivariate Gaussian}$ distribution
@@ -1135,7 +1171,121 @@ The log of the joint distribution
 \begin{align*}
     \log p(z,\out)=-\frac{1}{2}(z-\Mean_z)^T\Cov_z^{-1}(z-\Mean_z)\\ -\frac{1}{2}(\out-\weight z-\bias)^T\Cov_y^{-1}(\out-\weight z - \bias)
 \end{align*}
- 
+
+\section{Linear Models}\smallskip \hrule height 2pt \smallskip
+\subsection{Linear Discriminant Analysis}
+Consider classification models of the following form
+\[
+    p(y=c\mid\inp,\parameter) = \frac{p(\inp|y=c,\parameter)p(y=c|\parameter)}{\sum_{c'}p(\inp|y=c',\parameter)p(y=c'|\parameter)}
+\]
+where $p(y=c|\parameter)$ is the prior distribution, and $p(\inp|y=c,\parameter)$ is the class conditional density for class c. 
+
+The overall model is called a $\textbf{generative classifier}$, by generating features $\inp$ which have the class c, define $p(\inp|y=c,\parameter)$. By contrast, a $\textbf{discriminative classifier}$ directly model the class posterior $p(y=c|\inp,\parameter)$. 
+
+If we choose the class conditional densities in a special way, we will see that the posterior over classes is a linear function of $\inp$, $\log p(y=c|\inp,\parameter)=\weight\inp+\bias$.
+
+\textbf{Gaussian discriminant analysis}
+
+Consider generative classifierby a multivariate Gaussian
+\[
+    p(x|y=c,\parameter)=\N(\inp|\Mean_c,\Cov_c)
+\]
+
+The posterior has the form
+\[
+    p(y=c|\inp,\parameter) \propto \pi_c \N(\inp|\Mean_c,\Cov_c)
+\]
+where $\pi_c = p(y=c|\parameter)$ the prior probability of the label $c$,. It have a shorter name $\textbf{GDA}$.
+
+The log posterior over class is given by
+\begin{align*}
+    \log p(y=c\mid\inp,\parameter) = \log\pi_c-\frac{1}{2}\log|2\pi\Cov_c|\\ 
+    -\frac{1}{2}(\inp-\Mean_c)^T\Cov_c^{-1}(\inp-\Mean_c) + const
+\end{align*}
+
+This is called $\textbf{discriminant function}$, decision between 2 classes, say $c$ and $c'$, will be a quadratic function $x$. Hence this is known as a $\textbf{quadratic discriminant analysis(QDA)}.$
+
+\begin{minipage}{\linewidth}
+    \centering
+    \includegraphics[width=3in]{figures/QDA.PNG}
+\end{minipage}
+
+For example, give the 3 classes, each of them fit the Gaussian distribuion (fig $a$), and plot it (fig $b$). The feaures in the blue class, there have som correlated, while in the green are independent, and whereas red class are independent and isotropic.
+
+\textbf{Linear boundaries decision}
+When we have a special case of Gaussian distribution, which each class have the same covariance $\Cov_c=\Cov$. We define
+
+\begin{align*}
+    \log p(y = c | \inp, \parameter) &= \log \pi_c - \frac{1}{2} (\inp - \Mean)^\top \Cov^{-1} (\inp - \Mean) + \text{const}  \\
+    &= \log \pi_c - \underbrace{\frac{1}{2} \Mean^\top \Cov^{-1} \Mean}_{\gamma_c} + \underbrace{\inp^\top \Cov^{-1} \Mean}_{\beta_c} + \text{const} - \underbrace{\frac{1}{2} \inp^\top \Cov^{-1} \inp}_{\kappa} \\
+    &= \gamma_c + \inp^\top \beta_c + \kappa 
+\end{align*}
+
+The final term is independent of c. Although we use a quadratic discriminant analysis(QDA), we see that the discriminant function is a linear function of $\inp$. We see that 
+
+\begin{align*}
+    (\inp - \mu_c)^{\top} \Cov^{-1} (\inp - \mu_c) \\
+    = \inp^T\Cov^{-1} \inp- 2 \inp\Cov^{-1}\Mean_c+\Mean_c^T\Cov^{-1}\Mean_c
+\end{align*}
+Where we compared 2 classes ($c$ and $c'$) $\inp^T\Cov^{-1} \inp$ is same for both. 
+
+An interesting connection between LDA and logistic regression, we can write
+\[
+p(y=c|\inp,\parameter)=\frac{e^{\beta_c^T\inp+\gamma_c}}{\sum_{c'}e^{\beta_{c'}^T\inp+\gamma_{c'}}}=\frac{e^{\Weight^T[1,\inp]}}{\sum_{c'}e^{\Weight^T[1,\inp]}}
+\]
+where $\Weight_c=[\gamma_c,\beta_c]$. We has the same form as multinomial logistic regression model. The key difference is that in LDA, we first fit the Gaussians (and class prior) to maximize the join likelihood $p(x,y\mid\parameter)$ the join likelihood $p(\inp,\out|\parameter)$, and then we derive $\Weight$ from $\parameter$. By contrast, in logistic regression, we estimate $\Weight$ directly to maximize the conditional likelihood $p(y\mid\inp,\Weight)$. In general these can give different results. 
+
+Suppose we train the following binary classifier via maximum likelihood.
+\begin{itemize}
+    \item[a.] GaussI: A generative classifier, where the class-conditional densities are Gaussian, with both covariance matrices set to $\indicator$ (identity matrix), i.e., $p(x\mid y=c)=\N(\inp\mid\Mean_c,\Cov_c)$ We assume $p(y)$ is uniform
+    \item[b.] GaussX: as for GaussI, but the covariance matrices are unconstrained, i.e., $p(x\mid y=c)=\N(\inp\mid\Mean_c,\Cov_c)$
+    \item[c.] LinLog: A logistic regression model with linear features.
+    \item[d.] QuadLog: A logistic regression model, using linear and quadratic features(i.e., polynomial basis function expansion of degree 2) (\(w_0+w_1x_1+w_2x_2+w_3x_1^2+w_4x_2^2+w_5x_1x_2\)) 
+\end{itemize}
+
+After training we compute the performance of each model $M$ on the training set as follows
+\[
+    L(M)=\frac{1}{n}\sum_{i=1}^n\log p(y_i\mid\inp_i,\hat\parameter,M)
+\]
+\noindent (Note that this is the \textit{conditional} log-likelihood \( p(y | \inp, \hat{\parameter}) \) and not the joint log-likelihood \( p(y, \inp | \hat{\parameter}) \).) We now want to compare the performance of each model. We will write \( L(M) \leq L(M') \) if model \( M \) must have lower (or equal) log-likelihood (on the training set) than \( M' \), for any training set (in other words, \( M \) is worse than \( M' \), at least as far as training set log probability is concerned). For each of the following model pairs, state whether \( L(M) \leq L(M') \), \( L(M) \geq L(M') \), or whether no such statement can be made (i.e., \( M \) might sometimes be better than \( M' \) and sometimes worse); also, for each question, briefly (1-2 sentences) explain why.
+
+
+Answer: 
+\begin{enumerate}
+    \item GaussI:
+    \begin{itemize}
+        \item Parameters: for two classes in d-dimension, you estimate two mean vector (2d parameters) plus a class prior
+        \item The resulting decision boundary is a linear(because identical, spherical covariances lead to $\|x-\Mean_1\|^2-\|x-\Mean_2\|^2=const$
+        \item Weekness: It generative the features $\inp$ by sphere Gaussians ($\Cov=\variance\identity_d$,$\identity_d$ is the $d\times d$ matrix), so it is quite restrictive and tends not to fit training data as flexibly as purely disciminative models do.
+    \end{itemize}
+    \item LinLog
+    \begin{itemize}
+        \item Parameters: a single weight vector $\Weight\in\R^D$ plus a bias $b$, 
+        \item Decision boundary is also linear, but here the parameters are learned purely by maximizing the conditional likelihood $p(y\mid \inp,\parameter)$. Empirically this usually fits the training set better than the GaussI.
+    \end{itemize}
+    \item QuadLog
+    \begin{itemize}
+        \item Parameters: includes all linear terms plus all pair product $x_ix_j$, be a quadratic matrix.
+        \item This is a significantly large parameter set than LinLog, and it can shape a more flexible (quadratic) decision boundary in $x$-shape. This will achieve a lower training-set negative log-likelihood than purely linear model
+    \end{itemize}
+    \item Gauss2
+    \begin{itemize}
+        \item Prameters: for two classes, each has a mean vector($d$ parameters) plus a full covariance matrix(on the order of $\frac{d(d+1)}{2}$ independent parameters). All doubled because there is two classes, plus class priors.
+        \item The log-odds decisions boundary is the difference of two quadratic forms in $x$, giving even more freedom than a single quadratic function. As a result, on a giving training set, it tends to achieve the $\textbf{lowest}$ negative log-likelihood, also overfit the easiest.
+    \end{itemize}
+    On the $\textbf{training set}$, the typical ordering (worst $\rightarrow$ best)
+    \[
+        \text{GaussI} > \text{LinLog} > \text{QuadLog} > \text{Gauss2}
+    \]
+\end{enumerate}
+    
+%     \item Now suppose we measure performance in terms of the average misclassification rate on the training set:
+%           \begin{equation*}
+%               R(M) = \frac{1}{n} \sum_{i=1}^{n} \mathbb{I}(y_i \neq \hat{y}(x_i))
+%           \end{equation*}
+%           Is it true in general that \( L(M) > L(M') \) implies that \( R(M) < R(M') \)? Explain why or why not.
+% % \end{enumerate}
+
 \end{multicols*}
 
 \end{document}
